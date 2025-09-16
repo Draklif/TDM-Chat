@@ -1,32 +1,33 @@
 import { login } from "./services/api.js";
+import { showError, clearError, saveUser, redirectToChat } from "./ui/loginUI.js";
 
-document.getElementById("loginForm").addEventListener("submit", async function(e) {
+// Botón
+const loginForm = document.getElementById("loginForm");
+
+// Eventos
+loginForm.addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-    const errorEl = document.getElementById("loginError");
 
-    errorEl.textContent = "";
+    clearError();
 
     try {
+        // Failsafe porque esto no puede suceder
         if (!username || !password) {
-            errorEl.textContent = "Debes ingresar usuario y contraseña";
+            showError("Debes ingresar usuario y contraseña");
             return;
         }
 
         // Llamar backend
         const data = await login(username, password);
 
-        console.log(data)
-
-        // Guardar datos del usuario en localStorage
-        localStorage.setItem("username", data.user.name);
-
-        // Redirigir al chat
-        window.location.href = "/chat.html";
+        // Guardar y redirigir
+        saveUser(data.user);
+        redirectToChat();
     } catch (err) {
         console.error("Error de login:", err);
-        errorEl.textContent = err.message || "Credenciales inválidas";
+        showError(err.message || "Credenciales inválidas");
     }
 });

@@ -1,51 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-
-const USERS_FILE = path.join(__dirname, "..", "data", "users.json");
-
-// Helpers
-function getUsers() {
-    return JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
-}
-
-function saveUsers(users) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-}
+const { getUsers, saveUsers } = require("../models/users");
 
 function handleUsersRoutes(req, res) {
-    // POST /api/login
-    if (req.url === "/api/login" && req.method === "POST") {
-        let body = "";
-        req.on("data", chunk => (body += chunk));
-        req.on("end", () => {
-            try {
-                const { name, password } = JSON.parse(body);
-                const users = getUsers();
-                const user = users.find(u => u.name === name && u.password === password);
-                if (!user) {
-                    res.writeHead(401);
-                    res.end(JSON.stringify({ error: "Credenciales inválidas" }));
-                    return;
-                }
-                res.writeHead(200, { "Content-Type": "application/json" });
-                res.end(JSON.stringify({
-                    message: "Login exitoso",
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        rol: user.rol,
-                        img: user.img
-                    }   
-                }));
-            } catch (err) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ error: "JSON inválido" }));
-            }
-        });
-        return true;
-    }
-
     if (req.url.startsWith("/api/users")) {
         const method = req.method;
         const parts = req.url.split("/").filter(Boolean);
@@ -73,7 +28,7 @@ function handleUsersRoutes(req, res) {
             return true;
         }
 
-        // POST /api/users (crear usuario)
+        // POST /api/users
         if (method === "POST" && parts.length === 2) {
             let body = "";
             req.on("data", chunk => (body += chunk));
@@ -106,7 +61,7 @@ function handleUsersRoutes(req, res) {
             return true;
         }
 
-        // PUT /api/users/:id (actualizar usuario)
+        // PUT /api/users/:id
         if (method === "PUT" && parts.length === 3 && id) {
             let body = "";
             req.on("data", chunk => (body += chunk));
